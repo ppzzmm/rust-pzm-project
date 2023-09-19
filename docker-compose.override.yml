@@ -1,0 +1,8 @@
+# development configuration
+version: '3.9'
+services:
+
+  stocks-service:
+    build:
+      context: .
+      dockerfile: ./stocks-service/Dockerfile

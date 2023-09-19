@@ -1,0 +1,61 @@
+version: '3.9'
+services:
+
+  # Stocks Service
+  stocks-service:
+    image: francescoxx/rustapp:1.70.0
+    container_name: stocks-service
+    restart: always
+    depends_on:
+      - stocks-db
+    environment:
+      SERVER_PORT: 8080
+      DATABASE_URL: postgres://postgres:$STOCKS_DB_PASSWORD@stocks-db:5432/stocks
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: $KAFKA_TOPIC
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "8001:8080"
+  stocks-db:
+    image: postgres:15.1-alpine
+    container_name: stocks-db
+    restart: always
+    environment:
+      POSTGRES_DB: stocks
+      POSTGRES_PASSWORD: $PLANETS_DB_PASSWORD
+    healthcheck:
+      test: "pg_isready -U postgres -d stocks"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "5491:5432"
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    restart: always
+    healthcheck:
+      test: [ "CMD", "nc", "-vz", "localhost", "2181" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    restart: always
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "$KAFKA_TOPIC:1:1"
+    ports:
+      - "9092:9092"
