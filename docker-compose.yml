@@ -26,7 +26,7 @@ services:
     restart: always
     environment:
       POSTGRES_DB: stocks
-      POSTGRES_PASSWORD: $PLANETS_DB_PASSWORD
+      POSTGRES_PASSWORD: $STOCKS_DB_PASSWORD
     healthcheck:
       test: "pg_isready -U postgres -d stocks"
       interval: 10s

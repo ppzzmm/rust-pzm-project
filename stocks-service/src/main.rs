@@ -1,6 +1,8 @@
 extern crate stocks_service;
 
 use std::env;
+extern crate curl;
+extern crate serde_json;
 
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;

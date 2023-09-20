@@ -25,6 +25,7 @@ strum_macros = "0.25.1"
 rdkafka = { version = "0.33.2", features = ["cmake-build"] }
 async-stream = "0.3.5"
 lazy_static = "1.4.0"
+curl = "0.2.11"
 
 [dev-dependencies]
 jsonpath_lib = "0.3.0"

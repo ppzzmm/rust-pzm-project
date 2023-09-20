@@ -1,7 +1,5 @@
 use std::sync::{Arc, Mutex};
-
 use actix_web::{guard, web, HttpRequest, HttpResponse, Result};
-use async_graphql::dataloader::DataLoader;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{Context, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse, GraphQLSubscription};
@@ -21,7 +19,7 @@ const MIGRATIONS: diesel_migrations::EmbeddedMigrations =
 
 pub fn configure_service(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::resource("/")
+        web::resource("/stocks")
             .route(web::post().to(index))
             .route(
                 web::get()
@@ -53,21 +51,16 @@ async fn index_playground() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(playground_source(
-            GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+            GraphQLPlaygroundConfig::new("/stocks").subscription_endpoint("/"),
         ))
 }
 
 pub fn create_schema_with_context(pool: PgPool) -> Schema<Query, Mutation, Subscription> {
     let arc_pool = Arc::new(pool);
-    let cloned_pool = Arc::clone(&arc_pool);
-    // let stocks_data_loader =
-    //     DataLoader::new(StocksLoader { pool: cloned_pool }, actix_rt::spawn).max_batch_size(10);
-
     let kafka_consumer_counter = Mutex::new(0);
 
     Schema::build(Query, Mutation, Subscription)
         .data(arc_pool)
-        // .data(stocks_data_loader)
         .data(kafka::create_producer())
         .data(kafka_consumer_counter)
         .enable_subscription_in_federation()

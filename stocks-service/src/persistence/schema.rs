@@ -2,6 +2,7 @@ diesel::table! {
     stocks (id) {
         id -> Int4,
         symbol -> Varchar,
+        share_held -> Integer,
         user_id -> Int4,
     }
 }

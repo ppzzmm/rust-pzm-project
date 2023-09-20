@@ -17,6 +17,7 @@ pub struct UserEntity {
 pub struct StocksEntity {
     pub id: i32,
     pub symbol: String,
+    pub share_held: i32,
     pub user_id: i32,
 }
 
@@ -31,5 +32,6 @@ pub struct NewUserEntity {
 #[diesel(table_name = stocks)]
 pub struct NewStocksEntity {
     pub symbol: String,
+    pub share_held: i32,
     pub user_id: i32,
 }

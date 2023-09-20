@@ -1,10 +1,8 @@
-use std::collections::HashMap;
 use std::fmt::{self, Formatter, LowerExp};
 use std::iter::Iterator;
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
+use std::sync::{Mutex};
 
-use async_graphql::dataloader::{DataLoader, Loader};
 use async_graphql::*;
 use bigdecimal::{BigDecimal, ToPrimitive};
 use futures::{Stream, StreamExt};
@@ -14,8 +12,7 @@ use strum_macros::{Display, EnumString};
 
 use crate::get_conn_from_ctx;
 use crate::kafka;
-use crate::persistence::connection::PgPool;
-use crate::persistence::model::{StocksEntity, NewStocksEntity, NewUserEntity, UserEntity};
+use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity};
 use crate::persistence::repository;
 
 pub type AppSchema = Schema<Query, Mutation, Subscription>;
@@ -56,29 +53,23 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    async fn create_user(&self, ctx: &Context<'_>, user: UserInput) -> Result<User> {
-        let new_user = NewUserEntity {
-            name: user.name,
-            email: user.email,
+    async fn buy_stocks(&self, ctx: &Context<'_>, stock: StocksInput) -> Result<Stock> {
+        let new_stocks = NewStocksEntity {
+            symbol: stock.symbol,
+            share_held: stock.amount,
+            user_id: 1,
         };
 
-        let stocks = user.stocks;
-        let new_user_stocks = NewStocksEntity {
-            symbol: stocks.symbol,
-            user_id: 0,
-        };
-
-        let created_user_entity =
-            repository::create(new_user, new_user_stocks, &mut get_conn_from_ctx(ctx))?;
+        let created_stock_entity = repository::create_stock(new_stocks, &mut get_conn_from_ctx(ctx))?;
 
         let producer = ctx
             .data::<FutureProducer>()
             .expect("Can't get Kafka producer");
-        let message = serde_json::to_string(&User::from(&created_user_entity))
+        let message = serde_json::to_string(&Stock::from(&created_stock_entity))
             .expect("Can't serialize a user");
         kafka::send_message(producer, &message).await;
 
-        Ok(User::from(&created_user_entity))
+        Ok(Stock::from(&created_stock_entity))
     }
 }
 
@@ -133,24 +124,6 @@ impl User {
     async fn email(&self) -> &String {
         &self.email
     }
-
-    // #[graphql(deprecation = "Now it is not in doubt. Do not use this field")]
-    // async fn is_rotating_around_sun(&self) -> bool {
-    //     true
-    // }
-
-    // async fn stocks(&self, ctx: &Context<'_>) -> Result<Stocks> {
-    //     let data_loader = ctx
-    //         .data::<DataLoader<StocksLoader>>()
-    //         .expect("Can't get data loader");
-    //     let user_id = self
-    //         .id
-    //         .to_string()
-    //         .parse::<i32>()
-    //         .expect("Can't convert id");
-    //     let stocks = data_loader.load_one(user_id).await?;
-    //     stocks.ok_or_else(|| "Not found".into())
-    // }
 }
 
 
@@ -184,25 +157,6 @@ enum UserType {
     IceGiant,
     DwarfUser,
 }
-
-// #[derive(Interface, Clone)]
-// #[graphql(
-//     field(name = "unit_cost", ty = "&CustomBigDecimal"),
-// )]
-// pub enum Stocks {
-//     InhabitedUserStocks(InhabitedUserStocks),
-//     UninhabitedUserStocks(UninhabitedUserStocks),
-// }
-
-// #[derive(SimpleObject, Clone)]
-// pub struct InhabitedUserStocks {
-//     unit_cost: CustomBigDecimal,
-// }
-
-// #[derive(SimpleObject, Clone)]
-// pub struct UninhabitedUserStocks {
-//     unit_cost: CustomBigDecimal,
-// }
 
 #[derive(Clone)]
 pub struct CustomBigInt(BigDecimal);
@@ -261,6 +215,7 @@ struct UserInput {
 #[derive(InputObject)]
 struct StocksInput {
     symbol: String,
+    amount: i32,
 }
 
 impl From<&UserEntity> for User {
@@ -282,23 +237,3 @@ impl From<&StocksEntity> for Stock {
         }
     }
 }
-
-// pub struct StocksLoader {
-//     pub pool: Arc<PgPool>,
-// }
-
-// #[async_trait::async_trait]
-// impl Loader<i32> for StocksLoader {
-//     type Value = Stocks;
-//     type Error = Error;
-
-//     async fn load(&self, keys: &[i32]) -> Result<HashMap<i32, Self::Value>, Self::Error> {
-//         let mut conn = self.pool.get()?;
-//         let stocks = repository::get_stocks(keys, &mut conn)?;
-
-//         Ok(stocks
-//             .iter()
-//             .map(|stocks_entity| (stocks_entity.user_id, Stocks::from(stocks_entity)))
-//             .collect::<HashMap<_, _>>())
-//     }
-// }
