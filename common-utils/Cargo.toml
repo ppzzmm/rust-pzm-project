@@ -1,0 +1,14 @@
+[package]
+name = "common-utils"
+version = "0.1.0"
+edition = "2021"
+authors = ["Pablo Zuñiga <pablo.zuniga.mata@gmail.com>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+tokio = { version = "1", features = ["full"] }
+curl = "0.2.11"
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

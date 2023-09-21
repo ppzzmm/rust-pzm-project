@@ -6,7 +6,11 @@ create table users (
 
 create table stocks (
     id serial primary key,
-    symbol varchar not null unique,
+    symbol varchar not null,
+    shares integer,
+    price varchar(50),
+    percentage_change varchar(50),
+    action_type varchar(10),
     user_id integer references users not null
 );
 

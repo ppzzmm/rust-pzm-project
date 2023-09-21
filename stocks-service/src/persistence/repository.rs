@@ -17,26 +17,6 @@ pub fn get_stock(symbol: String, conn: &mut PgConnection) -> QueryResult<StocksE
     stocks::table.filter(stocks::symbol.eq(symbol)).get_result(conn)
 }
 
-pub fn create(
-    new_user: NewUserEntity,
-    mut new_stocks_entity: NewStocksEntity,
-    conn: &mut PgConnection,
-) -> QueryResult<UserEntity> {
-    use crate::persistence::schema::{stocks::dsl::*, users::dsl::*};
-
-    let created_user: UserEntity = diesel::insert_into(users)
-        .values(new_user)
-        .get_result(conn)?;
-
-    new_stocks_entity.user_id = created_user.id;
-
-    diesel::insert_into(stocks)
-        .values(new_stocks_entity)
-        .execute(conn)?;
-
-    Ok(created_user)
-}
-
 pub fn create_stock(
     new_stocks: NewStocksEntity,
     conn: &mut PgConnection,

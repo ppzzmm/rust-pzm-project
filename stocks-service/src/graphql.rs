@@ -37,6 +37,12 @@ impl Query {
     async fn find_user_by_id(&self, ctx: &Context<'_>, id: ID) -> Option<User> {
         find_user_by_id_internal(ctx, id)
     }
+
+    // async fn get_stock_by_symbol(&self, ctx: &Context<'_>, simbol: String) -> Option<Stock> {
+    //     repository::get_stock(simbol, &mut get_conn_from_ctx(ctx))
+    //     .ok()
+    //     .map(|p| Stock::from(&p))
+    // }
 }
 
 fn find_user_by_id_internal(ctx: &Context<'_>, id: ID) -> Option<User> {
@@ -54,20 +60,57 @@ pub struct Mutation;
 #[Object]
 impl Mutation {
     async fn buy_stocks(&self, ctx: &Context<'_>, stock: StocksInput) -> Result<Stock> {
+        let resul: common_utils::CustomResult = common_utils::get_stock_from_nasdaq(stock.symbol.to_string());
+        if !resul.success {
+            return Err(Error{
+                message: resul.message,
+                source: None,
+                extensions: None,
+            });
+        }
+        let stock_by_symbol = repository::get_stock(stock.symbol.to_string(), &mut get_conn_from_ctx(ctx))
+            .ok()
+            .map(|p| Stock::from(&p));
+
+        if !stock_by_symbol.is_none() {
+            println!("PZM 0: {}", stock_by_symbol.unwrap().percentage_change);
+            // println!("PZM 110: {}", stock_by_symbol.unwrap().action_type);
+        }
+        let stock_from_nasdaq = resul.stock.unwrap();
+        let stock_data = stock_from_nasdaq.data;
+        println!("PZM 1: {}", stock_data.symbol);
+        println!("PZM 2: {}", stock_from_nasdaq.status.rCode);
+        let last_sale_price = stock_data.primaryData.lastSalePrice.replace("$", "");
+        let bid_price = stock_data.primaryData.bidPrice.replace("$", "");
+        // let cien: BigDecimal = "100".parse().unwrap();
+        let price = if bid_price != "N/A" {
+            bid_price
+        } else {
+            // last_sale_price.parse::<BigDecimal>().unwrap()// * cien
+            // BigDecimal::from_str(&last_sale_price.0.to_string()).expect("Can't get BigDecimal from string")// * cien
+            last_sale_price
+        };
+        let percentage_change = stock_data.primaryData.percentageChange
+            .replace("%", "")
+            .replace("+", "")
+            .replace("-", "");
         let new_stocks = NewStocksEntity {
             symbol: stock.symbol,
-            share_held: stock.amount,
+            shares: stock.shares,
+            price: price,
+            percentage_change: percentage_change,
+            action_type: "buy".to_string(),
             user_id: 1,
         };
 
         let created_stock_entity = repository::create_stock(new_stocks, &mut get_conn_from_ctx(ctx))?;
 
-        let producer = ctx
-            .data::<FutureProducer>()
-            .expect("Can't get Kafka producer");
-        let message = serde_json::to_string(&Stock::from(&created_stock_entity))
-            .expect("Can't serialize a user");
-        kafka::send_message(producer, &message).await;
+        // let producer = ctx
+        //     .data::<FutureProducer>()
+        //     .expect("Can't get Kafka producer");
+        // let message = serde_json::to_string(&Stock::from(&created_stock_entity))
+        //     .expect("Can't serialize a user");
+        // kafka::send_message(producer, &message).await;
 
         Ok(Stock::from(&created_stock_entity))
     }
@@ -126,11 +169,14 @@ impl User {
     }
 }
 
-
 #[derive(Serialize, Deserialize)]
 struct Stock {
     id: ID,
     symbol: String,
+    shares: i32,
+    price: String,
+    percentage_change: String,
+    action_type: String,
     user_id: ID,
 }
 
@@ -142,6 +188,22 @@ impl Stock {
 
     async fn symbol(&self) -> &String {
         &self.symbol
+    }
+
+    async fn shares(&self) -> &i32 {
+        &self.shares
+    }
+
+    async fn price(&self) -> &String {
+        &self.price
+    }
+
+    async fn percentage_change(&self) -> &String {
+        &self.percentage_change
+    }
+
+    async fn action_type(&self) -> &String {
+        &self.action_type
     }
 
     async fn user_id(&self) -> &ID {
@@ -215,7 +277,7 @@ struct UserInput {
 #[derive(InputObject)]
 struct StocksInput {
     symbol: String,
-    amount: i32,
+    shares: i32,
 }
 
 impl From<&UserEntity> for User {
@@ -233,6 +295,10 @@ impl From<&StocksEntity> for Stock {
         Stock {
             id: entity.id.into(),
             symbol: entity.symbol.clone(),
+            shares: entity.shares.into(),
+            price: entity.price.clone(),
+            percentage_change: entity.percentage_change.clone(),
+            action_type: entity.action_type.clone(),
             user_id: entity.user_id.into(),
         }
     }

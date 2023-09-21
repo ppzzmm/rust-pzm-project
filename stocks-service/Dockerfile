@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y libpq-dev cmake
 WORKDIR /usr/src/docker-build
 # create empty project for caching dependencies
 RUN USER=root cargo init
-
+COPY common-utils ../common-utils
 COPY Cargo.lock stocks-service/Cargo.toml ./
 # cache dependencies
 RUN cargo install --path . --locked

@@ -1,4 +1,3 @@
-use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 
 use crate::persistence::schema::{stocks, users};
@@ -17,7 +16,10 @@ pub struct UserEntity {
 pub struct StocksEntity {
     pub id: i32,
     pub symbol: String,
-    pub share_held: i32,
+    pub shares: i32,
+    pub price: String,
+    pub percentage_change: String,
+    pub action_type: String,
     pub user_id: i32,
 }
 
@@ -32,6 +34,9 @@ pub struct NewUserEntity {
 #[diesel(table_name = stocks)]
 pub struct NewStocksEntity {
     pub symbol: String,
-    pub share_held: i32,
+    pub shares: i32,
+    pub price: String,
+    pub percentage_change: String,
+    pub action_type: String,
     pub user_id: i32,
 }

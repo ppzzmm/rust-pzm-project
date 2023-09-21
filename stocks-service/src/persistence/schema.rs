@@ -2,7 +2,23 @@ diesel::table! {
     stocks (id) {
         id -> Int4,
         symbol -> Varchar,
-        share_held -> Integer,
+        shares -> Integer,
+        price -> Varchar,
+        percentage_change -> Varchar,
+        action_type -> Varchar,
+        user_id -> Int4,
+    }
+}
+
+diesel::table! {
+    stocks_summary (id) {
+        id -> Int4,
+        symbol -> Varchar,
+        shares -> Integer,
+        total_value -> Varchar,
+        lowest_price -> Varchar,
+        highest_price -> Varchar,
+        average_price -> Varchar,
         user_id -> Int4,
     }
 }
