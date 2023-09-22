@@ -11,7 +11,7 @@ use crate::graphql::{AppSchema, Mutation, Query, Subscription};
 use crate::persistence::connection::PgPool;
 
 pub mod graphql;
-mod kafka;
+mod kafka_sockets;
 pub mod persistence;
 
 const MIGRATIONS: diesel_migrations::EmbeddedMigrations =
@@ -61,7 +61,6 @@ pub fn create_schema_with_context(pool: PgPool) -> Schema<Query, Mutation, Subsc
 
     Schema::build(Query, Mutation, Subscription)
         .data(arc_pool)
-        .data(kafka::create_producer())
         .data(kafka_consumer_counter)
         .enable_subscription_in_federation()
         .finish()

@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-use crate::persistence::model::{StocksEntity, NewStocksEntity, NewUserEntity, UserEntity};
+use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity};
 use crate::persistence::schema::{stocks, users};
 
 pub fn get_all(conn: &mut PgConnection) -> QueryResult<Vec<UserEntity>> {

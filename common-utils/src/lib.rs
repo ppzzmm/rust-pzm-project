@@ -1,10 +1,17 @@
-extern crate curl;
+// extern crate curl;
 extern crate serde_json;
 
-use curl::http;
+use curl::easy::{Easy2, Handler, WriteError};
+struct Collector(Vec<u8>);
+impl Handler for Collector {
+    fn write(&mut self, data: &[u8]) -> Result<usize, WriteError> {
+        self.0.extend_from_slice(data);
+        Ok(data.len())
+    }
+}
 use serde_json::Value;
 use serde::{Deserialize, Serialize};
-
+use kafka::producer::{Producer, Record};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StockCode {
     pub status: StockStatus,
@@ -86,24 +93,15 @@ pub struct CustomResult {
 
 pub fn get_stock_from_nasdaq(symbol: String) -> CustomResult  {
     let url = format!("https://api.nasdaq.com/api/quote/{}/info?assetclass=stocks", symbol);
-    let resp = http::handle()
-        .get(url)
-        .exec()
-        .unwrap_or_else(|e| {
-            panic!("Failed to get Stock; error is {}", e);
-        });
+    let mut easy = Easy2::new(Collector(Vec::new()));
+    easy.get(true).unwrap();
+    easy.url(&url).unwrap();
+    easy.perform().unwrap();
+    assert_eq!(easy.response_code().unwrap(), 200);
+    let contents = easy.get_ref();
 
-    if resp.get_code() != 200 {
-        let message = format!("Unable to handle HTTP response code {}", resp.get_code());
-        return CustomResult {
-            stock: None,
-            success: false,
-            message: message,
-        };
-    }
-
-    let body: &str = std::str::from_utf8(resp.get_body()).unwrap_or_else(|e| {
-        panic!("Failed to parse response from STOCKS; error is {}", e);
+    let body: &str = std::str::from_utf8(&contents.0).unwrap_or_else(|e| {
+        panic!("Failed to parse response from; error is {}", e);
     });
     let object: Value = serde_json::from_str(body).unwrap();
     let stock_code: StockCode = serde_json::from_value(object).unwrap();
@@ -112,7 +110,7 @@ pub fn get_stock_from_nasdaq(symbol: String) -> CustomResult  {
         return CustomResult {
             stock: None,
             success: false,
-            message: "Symbol not exists".to_string(),
+            message: "Symbol not exists PZM 22121212".to_string(),
         };
     }
 
@@ -123,4 +121,19 @@ pub fn get_stock_from_nasdaq(symbol: String) -> CustomResult  {
         success: true,
         message: "success!".to_string(),
     };
+}
+
+pub fn send_message_to_consumer(symbol: String) {
+    let url_kafka = "kafka:9092".to_string();
+    let hosts = vec![url_kafka.to_owned()];
+    let mut producer =
+    Producer::from_hosts(hosts)
+        .create()
+        .unwrap();
+
+    for i in 0..10 {
+    let buf = format!("{}, PZM 33356577: {}",i, symbol);
+    producer.send(&Record::from_value("topic-stocks", buf.as_bytes())).unwrap();
+    println!("Sent: PPZZMZMZMZ{i}");
+    }
 }

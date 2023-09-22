@@ -1,7 +1,6 @@
 extern crate stocks_service;
 
 use std::env;
-extern crate curl;
 extern crate serde_json;
 
 use actix_web::{web, App, HttpServer};
@@ -18,14 +17,14 @@ async fn main() -> std::io::Result<()> {
 
     let schema = web::Data::new(create_schema_with_context(pool));
 
-    // let server_port = env::var("SERVER_PORT").expect("Can't get server port");
+    let server_port = env::var("SERVER_PORT").expect("Can't get server port");
 
     HttpServer::new(move || {
         App::new()
             .configure(configure_service)
             .app_data(schema.clone())
     })
-    .bind(format!("0.0.0.0:{}", "8001"))?
+    .bind(format!("0.0.0.0:{}", server_port))?
     .run()
     .await
 }

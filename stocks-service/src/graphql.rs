@@ -11,12 +11,11 @@ use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
 
 use crate::get_conn_from_ctx;
-use crate::kafka;
+use crate::kafka_sockets;
 use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity};
 use crate::persistence::repository;
 
 pub type AppSchema = Schema<Query, Mutation, Subscription>;
-
 pub struct Query;
 
 #[Object]
@@ -60,7 +59,7 @@ pub struct Mutation;
 #[Object]
 impl Mutation {
     async fn buy_stocks(&self, ctx: &Context<'_>, stock: StocksInput) -> Result<Stock> {
-        let resul: common_utils::CustomResult = common_utils::get_stock_from_nasdaq(stock.symbol.to_string());
+        let resul = common_utils::get_stock_from_nasdaq(stock.symbol.to_string());
         if !resul.success {
             return Err(Error{
                 message: resul.message,
@@ -103,15 +102,8 @@ impl Mutation {
             user_id: 1,
         };
 
+        common_utils::send_message_to_consumer(new_stocks.symbol.to_string());
         let created_stock_entity = repository::create_stock(new_stocks, &mut get_conn_from_ctx(ctx))?;
-
-        // let producer = ctx
-        //     .data::<FutureProducer>()
-        //     .expect("Can't get Kafka producer");
-        // let message = serde_json::to_string(&Stock::from(&created_stock_entity))
-        //     .expect("Can't serialize a user");
-        // kafka::send_message(producer, &message).await;
-
         Ok(Stock::from(&created_stock_entity))
     }
 }
@@ -127,8 +119,8 @@ impl Subscription {
         let kafka_consumer_counter = ctx
             .data::<Mutex<i32>>()
             .expect("Can't get Kafka consumer counter");
-        let consumer_group_id = kafka::get_kafka_consumer_group_id(kafka_consumer_counter);
-        let consumer = kafka::create_consumer(consumer_group_id);
+        let consumer_group_id = kafka_sockets::get_kafka_consumer_group_id(kafka_consumer_counter);
+        let consumer = kafka_sockets::create_consumer(consumer_group_id);
 
         async_stream::stream! {
             let mut stream = consumer.stream();
