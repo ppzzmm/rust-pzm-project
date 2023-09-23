@@ -123,7 +123,8 @@ pub fn get_stock_from_nasdaq(symbol: String) -> CustomResult  {
     };
 }
 
-pub fn send_message_to_consumer(symbol: String) {
+pub fn send_message_to_consumer(symbol: String, shares: i32) {
+    // let url_kafka = "localhost:9092".to_string();
     let url_kafka = "kafka:9092".to_string();
     let hosts = vec![url_kafka.to_owned()];
     let mut producer =
@@ -131,9 +132,7 @@ pub fn send_message_to_consumer(symbol: String) {
         .create()
         .unwrap();
 
-    for i in 0..10 {
-    let buf = format!("{}, PZM 33356577: {}",i, symbol);
+    let buf = format!("{},{}", symbol, shares);
     producer.send(&Record::from_value("topic-stocks", buf.as_bytes())).unwrap();
-    println!("Sent: PPZZMZMZMZ{i}");
-    }
+    println!("Symbol: {symbol}, Shares: {shares}");
 }

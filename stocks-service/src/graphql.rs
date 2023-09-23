@@ -102,7 +102,7 @@ impl Mutation {
             user_id: 1,
         };
 
-        common_utils::send_message_to_consumer(new_stocks.symbol.to_string());
+        common_utils::send_message_to_consumer(new_stocks.symbol.to_string(), stock.shares);
         let created_stock_entity = repository::create_stock(new_stocks, &mut get_conn_from_ctx(ctx))?;
         Ok(Stock::from(&created_stock_entity))
     }

@@ -670,12 +670,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "consumer"
+name = "consumer-stocks-service"
 version = "0.1.0"
 dependencies = [
+ "actix-rt",
+ "actix-web",
+ "actix-web-actors",
+ "async-graphql",
+ "async-graphql-actix-web",
+ "async-stream",
+ "async-trait",
+ "bigdecimal 0.3.1",
+ "common-utils",
+ "diesel",
+ "diesel_migrations",
+ "dotenv",
+ "futures",
+ "jsonpath_lib",
  "kafka",
+ "lazy_static",
+ "rdkafka",
  "serde",
  "serde_json",
+ "strum",
+ "strum_macros",
+ "testcontainers",
 ]
 
 [[package]]

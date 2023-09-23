@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./stocks-service/Dockerfile
-  consumer:
+  consumer-stocks-service:
     build:
       context: .
-      dockerfile: ./consumer/Dockerfile
+      dockerfile: ./consumer-stocks-service/Dockerfile

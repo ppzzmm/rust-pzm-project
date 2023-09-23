@@ -8,16 +8,16 @@ RUN apt-get update && apt-get install -y libpq-dev cmake
 WORKDIR /usr/src/docker-build
 # create empty project for caching dependencies
 RUN USER=root cargo init
-# COPY common-utils ../common-utils
-COPY Cargo.lock consumer/Cargo.toml ./
+COPY common-utils ../common-utils
+COPY Cargo.lock consumer-stocks-service/Cargo.toml ./
 # cache dependencies
 RUN cargo install --path . --locked
 
-COPY consumer/ ./
+COPY consumer-stocks-service/ ./
 RUN touch src/main.rs
 RUN cargo install --path . --locked
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y libpq-dev curl
-COPY --from=builder /usr/local/cargo/bin/consumer /bin/
-CMD ["consumer"]
+COPY --from=builder /usr/local/cargo/bin/consumer-stocks-service /bin/
+CMD ["consumer-stocks-service"]

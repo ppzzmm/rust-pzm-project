@@ -1,5 +1,5 @@
 [workspace]
 members = [
     "stocks-service",
-    "consumer"
+    "consumer-stocks-service"
 ]
