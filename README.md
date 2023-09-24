@@ -52,7 +52,7 @@ $ bin/kafka-console-consumer.sh --topic topic-stocks --from-beginning --bootstra
 $ bin/kafka-console-producer.sh --topic topic-stocks --bootstrap-server localhost:9092
 ```
 #### Create data base
-- To create the database we are using, run this command:
+- To create the database that we are using, run this command:
 ```bash
 $ createdb postgres 
 ```
