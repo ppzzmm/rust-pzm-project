@@ -13,7 +13,7 @@ To run the project locally you only need Docker Compose. Without Docker, you mig
 - [CMake](https://cmake.org/install/) 
 - [PostgreSQL](https://www.postgresql.org/download/)
 - [Apache Kafka](https://kafka.apache.org/quickstart)
-- [npm](https://docs.npmjs.com/getting-started
+- [npm](https://docs.npmjs.com/getting-started)
 ## Clone the Repository 
 ```bash
 $ git clone git@github.com:ppzzmm/rust-pzm-project.git && cd rust-pzm-project
