@@ -1,5 +1,4 @@
-# rust-pzm-project
-# Project with Rust, Diesel, GrapHQL and Docker
+# Buy/Sale Stocks
 
 ## Requirements
 
