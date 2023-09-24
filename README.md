@@ -1,5 +1,5 @@
 # Buy/Sale Stocks
-This project provide an API GraphQL service to buy/sell stocks and hold dtocks and track postafolio performance. We use Kafka to enque message to execute the buy/sell orders independently of the API service.
+This project provide an API GraphQL service to buy/sell stocks and hold dtocks and track postafolio performance. We use Kafka to queue message to execute the buy/sell orders independently of the API service.
 ## Stack of technologies
 That are some of main technologies used in the project:
 - [Rust](https://www.rust-lang.org/)
