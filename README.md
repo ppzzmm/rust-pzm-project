@@ -84,6 +84,20 @@ $curl 'http://localhost:8001/stocks' -H 'Accept-Encoding: gzip, deflate, br' -H 
     priceByHours
   }
 }
+
+or to buy stocks with mutation option:
+
+mutation{
+  buyStocks(
+    stock: {
+      symbol: "APP",
+      shares: 212
+    }
+  )
+  {
+    id
+  }
+}
 ```
 
 ![Screen Recording 2023-09-23 at 23 31 26](https://github.com/ppzzmm/rust-pzm-project/assets/29339482/5fa898b7-4e43-44be-a68f-44c9c0c7a754)
