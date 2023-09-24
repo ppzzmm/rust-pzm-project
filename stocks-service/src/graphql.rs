@@ -14,6 +14,7 @@ use crate::get_conn_from_ctx;
 use crate::kafka_sockets;
 use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity, StocksSummaryEntity};
 use crate::persistence::repository;
+use crate::stock_functions::{save_stock, calculate_stock_summary};
 
 pub type AppSchema = Schema<Query, Mutation, Subscription>;
 pub struct Query;
@@ -65,15 +66,15 @@ pub struct Mutation;
 #[Object]
 impl Mutation {
     async fn buy_stocks(&self, ctx: &Context<'_>, stock: StocksInput) -> Result<Stock> {
-        let resul = common_utils::get_stock_from_nasdaq(stock.symbol.to_string());
-        if !resul.success {
+        let result = common_utils::get_stock_from_nasdaq(stock.symbol.to_string());
+        if !result.success {
             return Err(Error{
-                message: resul.message,
+                message: result.message,
                 source: None,
                 extensions: None,
             });
         }
-        let stock_from_nasdaq = resul.stock.unwrap();
+        let stock_from_nasdaq = result.stock.unwrap();
         let stock_data = stock_from_nasdaq.data;
         let last_sale_price = stock_data.primaryData.lastSalePrice.replace("$", "");
         let bid_price = stock_data.primaryData.bidPrice.replace("$", "");
@@ -86,16 +87,21 @@ impl Mutation {
             .replace("%", "")
             .replace("+", "");
         let new_stocks = NewStocksEntity {
-            symbol: stock.symbol,
+            symbol: stock.symbol.to_string(),
             shares: stock.shares,
-            price: price,
-            percentage_change: percentage_change,
+            price: price.to_string(),
+            percentage_change: percentage_change.to_string(),
             action_type: "buy".to_string(),
             user_id: 1,
         };
-
-        common_utils::send_message_to_consumer(new_stocks.symbol.to_string(), stock.shares, "buy".to_string());
+        calculate_stock_summary(
+            stock.symbol.to_string(),
+            stock.shares,
+            price.to_string(),
+            percentage_change.to_string()
+        );
         let created_stock_entity = repository::create_stock(new_stocks, &mut get_conn_from_ctx(ctx))?;
+        common_utils::send_message_to_consumer(stock.symbol.to_string(), stock.shares, "buy".to_string());
         Ok(Stock::from(&created_stock_entity))
     }
 }

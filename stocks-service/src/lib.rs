@@ -13,6 +13,7 @@ use crate::persistence::connection::PgPool;
 pub mod graphql;
 mod kafka_sockets;
 pub mod persistence;
+pub mod stock_functions;
 
 const MIGRATIONS: diesel_migrations::EmbeddedMigrations =
     diesel_migrations::embed_migrations!("./migrations");
