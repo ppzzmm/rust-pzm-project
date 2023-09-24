@@ -51,6 +51,11 @@ $ bin/kafka-topics.sh --create --topic topic-stocks --bootstrap-server localhost
 $ bin/kafka-console-consumer.sh --topic topic-stocks --from-beginning --bootstrap-server localhost:9092
 $ bin/kafka-console-producer.sh --topic topic-stocks --bootstrap-server localhost:9092
 ```
+#### Create data base
+- To create the database we are using, run this command:
+```bash
+$ createdb postgres 
+```
 #### Run the applications and services
 - Placed within the project, first we have to run the **stocks-service** project because that contain the migrations to create the database tables, in this project we have the **GrapHQL** endpoints to get the information about the stocks:
 ```bash
