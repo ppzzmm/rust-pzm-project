@@ -52,16 +52,15 @@ $ bin/kafka-console-consumer.sh --topic topic-stocks --from-beginning --bootstra
 $ bin/kafka-console-producer.sh --topic topic-stocks --bootstrap-server localhost:9092
 ```
 #### Run the applications and services
-- Placed within the project, first we have to run the **stocks-service** project because that contain the migrations to create the database tables:
+- Placed within the project, first we have to run the **stocks-service** project because that contain the migrations to create the database tables, in this project we have the **GrapHQL** endpoints to get the information about the stocks:
 ```bash
 $ cargo run -p stocks-service
-
-In this project we have the GrapHQL endpoints to get the information about the stocks.
 ```
-- Placed inside the project but in another terminal, run the following command to load the consumer-stocks-service service, here we have the kafka consumer to process the stocks that the user bought or sold:
+- Placed inside the project but in another terminal, run the following command to load the **consumer-stocks-service** service, here we have the kafka consumer to process the stocks that the user bought or sold:
 ```bash
 $ cargo run -p consumer-stocks-service
 ```
+- To finish the project launch we have this **Rest API** in rust to buy or sale stocks, this endpoints send an event in the kafka topic to the consumer (**consumer-stocks-service**) process the information:
 ```bash
 $ cargo run -p stocks-endpoints 
 ```
