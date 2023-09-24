@@ -1,4 +1,5 @@
 # Buy/Sale Stocks
+This project provide an API GraphQL service to buy/sell stocks and hold dtocks and track postafolio performance. We use Kafka to enque message to execute the buy/sell orders independently of the API service.
 ## Stack of technologies
 That are some of main technologies used in the project:
 - [Rust](https://www.rust-lang.org/)
@@ -102,3 +103,8 @@ mutation{
 
 ![Screen Recording 2023-09-23 at 23 31 26](https://github.com/ppzzmm/rust-pzm-project/assets/29339482/5fa898b7-4e43-44be-a68f-44c9c0c7a754)
 
+<img width="1646" alt="Screenshot 2023-09-24 at 0 52 11" src="https://github.com/ppzzmm/rust-pzm-project/assets/29339482/2d082b14-a787-4222-8dad-36daf1a93172">
+
+<img width="1425" alt="Screenshot 2023-09-24 at 0 52 21" src="https://github.com/ppzzmm/rust-pzm-project/assets/29339482/d929dc1b-11b5-4bc6-97f3-17bb7f655b7e">
+
+<img width="1446" alt="Screenshot 2023-09-24 at 0 52 32" src="https://github.com/ppzzmm/rust-pzm-project/assets/29339482/e8c8118e-62f1-48a3-8993-02585a6886ef">
