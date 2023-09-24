@@ -8,9 +8,10 @@ create table stocks (
     id serial primary key,
     symbol varchar not null,
     shares integer,
-    price varchar(50),
-    percentage_change varchar(50),
+    price varchar,
+    percentage_change varchar,
     action_type varchar(10),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id integer references users not null
 );
 

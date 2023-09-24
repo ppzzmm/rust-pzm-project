@@ -1,6 +1,8 @@
 // extern crate curl;
 extern crate serde_json;
 
+use std::env;
+
 use curl::easy::{Easy2, Handler, WriteError};
 struct Collector(Vec<u8>);
 impl Handler for Collector {
@@ -110,7 +112,7 @@ pub fn get_stock_from_nasdaq(symbol: String) -> CustomResult  {
         return CustomResult {
             stock: None,
             success: false,
-            message: "Symbol not exists PZM 22121212".to_string(),
+            message: "Symbol not exists".to_string(),
         };
     }
 
@@ -123,16 +125,24 @@ pub fn get_stock_from_nasdaq(symbol: String) -> CustomResult  {
     };
 }
 
-pub fn send_message_to_consumer(symbol: String, shares: i32) {
-    // let url_kafka = "localhost:9092".to_string();
-    let url_kafka = "kafka:9092".to_string();
-    let hosts = vec![url_kafka.to_owned()];
+pub fn send_message_to_consumer(symbol: String, shares: i32, action: String) {
+    #[allow(unused_assignments)]
+    let mut url_kafka = "".to_string();
+    match env::var("KAFKA_BROKER") {
+        Ok(stream) => {
+            url_kafka = format!("{}", stream);
+        }
+        Err(_e) => {
+            url_kafka = "localhost:9092".to_string();
+        }
+    };
+    let hosts = vec![url_kafka];
     let mut producer =
     Producer::from_hosts(hosts)
         .create()
         .unwrap();
 
-    let buf = format!("{},{}", symbol, shares);
+    let buf = format!("{},{},{}", symbol, shares, action);
     producer.send(&Record::from_value("topic-stocks", buf.as_bytes())).unwrap();
     println!("Symbol: {symbol}, Shares: {shares}");
 }

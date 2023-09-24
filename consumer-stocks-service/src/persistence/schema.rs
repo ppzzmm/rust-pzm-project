@@ -19,6 +19,8 @@ diesel::table! {
         lowest_price -> Varchar,
         highest_price -> Varchar,
         average_price -> Varchar,
+        price_by_hours -> Varchar,
+        profit_loss -> Varchar,
         user_id -> Int4,
     }
 }

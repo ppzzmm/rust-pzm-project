@@ -28,17 +28,18 @@ services:
     depends_on:
       - stocks-db
     environment:
-      SERVER_PORT: 8082
+      SERVER_PORT: 8080
       DATABASE_URL: postgres://postgres:$STOCKS_DB_PASSWORD@stocks-db:5432/stocks
       KAFKA_BROKER: kafka:9092
       KAFKA_TOPIC: $KAFKA_TOPIC
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:80/" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/" ]
       interval: 10s
       timeout: 3s
       retries: 3
     ports:
       - "8002:8080"
+  #DataBase
   stocks-db:
     image: postgres:15.1-alpine
     container_name: stocks-db
@@ -53,7 +54,23 @@ services:
       retries: 3
     ports:
       - "5491:5432"
-
+  # Endoints
+  stocks-endpoints:
+    image: francescoxx/rustapp:1.70.0
+    container_name: stocks-endpoints
+    restart: always
+    environment:
+      SERVER_PORT: 8080
+      DATABASE_URL: postgres://postgres:$STOCKS_DB_PASSWORD@stocks-db:5432/stocks
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: $KAFKA_TOPIC
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:80/" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "8080:8080"
   zookeeper:
     image: wurstmeister/zookeeper
     container_name: zookeeper

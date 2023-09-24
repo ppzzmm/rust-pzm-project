@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity};
+use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity, StocksSummaryEntity};
 use crate::persistence::schema::{stocks, users};
 
 pub fn get_all(conn: &mut PgConnection) -> QueryResult<Vec<UserEntity>> {
@@ -15,6 +15,12 @@ pub fn get(id: i32, conn: &mut PgConnection) -> QueryResult<UserEntity> {
 
 pub fn get_stock(symbol: String, conn: &mut PgConnection) -> QueryResult<StocksEntity> {
     stocks::table.filter(stocks::symbol.eq(symbol)).get_result(conn)
+}
+
+pub fn get_stocks_summary(conn: &mut PgConnection) -> QueryResult<Vec<StocksSummaryEntity>> {
+    use crate::persistence::schema::stocks_summary::dsl::*;
+
+    stocks_summary.load(conn)
 }
 
 pub fn create_stock(

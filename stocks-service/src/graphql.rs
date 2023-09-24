@@ -6,13 +6,13 @@ use std::sync::{Mutex};
 use async_graphql::*;
 use bigdecimal::{BigDecimal, ToPrimitive};
 use futures::{Stream, StreamExt};
-use rdkafka::{producer::FutureProducer, Message};
+use rdkafka::{Message};
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
 
 use crate::get_conn_from_ctx;
 use crate::kafka_sockets;
-use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity};
+use crate::persistence::model::{StocksEntity, NewStocksEntity, UserEntity, StocksSummaryEntity};
 use crate::persistence::repository;
 
 pub type AppSchema = Schema<Query, Mutation, Subscription>;
@@ -37,11 +37,17 @@ impl Query {
         find_user_by_id_internal(ctx, id)
     }
 
-    // async fn get_stock_by_symbol(&self, ctx: &Context<'_>, simbol: String) -> Option<Stock> {
-    //     repository::get_stock(simbol, &mut get_conn_from_ctx(ctx))
-    //     .ok()
-    //     .map(|p| Stock::from(&p))
-    // }
+    async fn get_stocks(&self, ctx: &Context<'_>, id: ID) -> Option<User> {
+        find_user_by_id_internal(ctx, id)
+    }
+
+    async fn stocks_summary(&self, ctx: &Context<'_>) -> Vec<StockSummary> {
+        repository::get_stocks_summary(&mut get_conn_from_ctx(ctx))
+            .expect("Can't get users")
+            .iter()
+            .map(StockSummary::from)
+            .collect()
+    }
 }
 
 fn find_user_by_id_internal(ctx: &Context<'_>, id: ID) -> Option<User> {
@@ -67,32 +73,18 @@ impl Mutation {
                 extensions: None,
             });
         }
-        let stock_by_symbol = repository::get_stock(stock.symbol.to_string(), &mut get_conn_from_ctx(ctx))
-            .ok()
-            .map(|p| Stock::from(&p));
-
-        if !stock_by_symbol.is_none() {
-            println!("PZM 0: {}", stock_by_symbol.unwrap().percentage_change);
-            // println!("PZM 110: {}", stock_by_symbol.unwrap().action_type);
-        }
         let stock_from_nasdaq = resul.stock.unwrap();
         let stock_data = stock_from_nasdaq.data;
-        println!("PZM 1: {}", stock_data.symbol);
-        println!("PZM 2: {}", stock_from_nasdaq.status.rCode);
         let last_sale_price = stock_data.primaryData.lastSalePrice.replace("$", "");
         let bid_price = stock_data.primaryData.bidPrice.replace("$", "");
-        // let cien: BigDecimal = "100".parse().unwrap();
         let price = if bid_price != "N/A" {
             bid_price
         } else {
-            // last_sale_price.parse::<BigDecimal>().unwrap()// * cien
-            // BigDecimal::from_str(&last_sale_price.0.to_string()).expect("Can't get BigDecimal from string")// * cien
             last_sale_price
         };
         let percentage_change = stock_data.primaryData.percentageChange
             .replace("%", "")
-            .replace("+", "")
-            .replace("-", "");
+            .replace("+", "");
         let new_stocks = NewStocksEntity {
             symbol: stock.symbol,
             shares: stock.shares,
@@ -102,7 +94,7 @@ impl Mutation {
             user_id: 1,
         };
 
-        common_utils::send_message_to_consumer(new_stocks.symbol.to_string(), stock.shares);
+        common_utils::send_message_to_consumer(new_stocks.symbol.to_string(), stock.shares, "buy".to_string());
         let created_stock_entity = repository::create_stock(new_stocks, &mut get_conn_from_ctx(ctx))?;
         Ok(Stock::from(&created_stock_entity))
     }
@@ -295,3 +287,78 @@ impl From<&StocksEntity> for Stock {
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
+struct StockSummary {
+    id: ID,
+    symbol: String,
+    shares: i32,
+    total_value: String,
+    lowest_price: String,
+    highest_price: String,
+    average_price: String,
+    price_by_hours: String,
+    profit_loss: String,
+    user_id: ID,
+}
+
+#[Object]
+impl StockSummary {
+    async fn id(&self) -> &ID {
+        &self.id
+    }
+
+    async fn symbol(&self) -> &String {
+        &self.symbol
+    }
+
+    async fn shares(&self) -> &i32 {
+        &self.shares
+    }
+
+    async fn total_value(&self) -> &String {
+        &self.total_value
+    }
+
+    async fn lowest_price(&self) -> &String {
+        &self.lowest_price
+    }
+
+    async fn highest_price(&self) -> &String {
+        &self.highest_price
+    }
+
+    async fn average_price(&self) -> &String {
+        &self.average_price
+    }
+
+    async fn price_by_hours(&self) -> &String {
+        &self.price_by_hours
+    }
+
+    async fn profit_loss(&self) -> &String {
+        &self.profit_loss
+    }
+
+    async fn user_id(&self) -> &ID {
+        &self.user_id
+    }
+}
+
+impl From<&StocksSummaryEntity> for StockSummary {
+    fn from(entity: &StocksSummaryEntity) -> Self {
+        StockSummary {
+            id: entity.id.into(),
+            symbol: entity.symbol.clone(),
+            shares: entity.shares.into(),
+            total_value: entity.total_value.clone(),
+            lowest_price: entity.lowest_price.clone(),
+            highest_price: entity.highest_price.clone(),
+            average_price: entity.average_price.clone(),
+            price_by_hours: entity.price_by_hours.clone(),
+            profit_loss: entity.profit_loss.clone(),
+            user_id: entity.user_id.into(),
+        }
+    }
+}
+

@@ -17,7 +17,16 @@ async fn main() -> std::io::Result<()> {
 
     let schema = web::Data::new(create_schema_with_context(pool));
 
-    let server_port = env::var("SERVER_PORT").expect("Can't get server port");
+    #[allow(unused_assignments)]
+    let mut server_port = "".to_string();
+    match env::var("SERVER_PORT") {
+        Ok(stream) => {
+            server_port = format!("{}", stream);
+        }
+        Err(_e) => {
+            server_port = "8001".to_string();
+        }
+    };
 
     HttpServer::new(move || {
         App::new()
