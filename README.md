@@ -64,7 +64,27 @@ $ cargo run -p consumer-stocks-service
 $ cargo run -p stocks-endpoints 
 ```
 ### Testing
-- In your brouser open https://localhost:8080/stocks
+- [Here](https://documenter.getpostman.com/view/2220937/2s9YJW55ye#4a2e2bf0-07ee-4066-84a8-db120f3dfb96) you can see how to run the services in postman:
+  <img width="1657" alt="Screenshot 2023-09-23 at 23 47 41" src="https://github.com/ppzzmm/rust-pzm-project/assets/29339482/a9b7ab8e-031e-4c8f-9fe3-9c27e7c0b78f">
+- If you already used the endpoints to buy or sale stocks, page this command Curl in a terminal to see the information:
+```bash
+$curl 'http://localhost:8001/stocks' -H 'Accept-Encoding: gzip, deflate, br' -H 'Content-Type: application/json' -H 'Accept: application/json' -H 'Connection: keep-alive' -H 'DNT: 1' -H 'Origin: http://localhost:8001' --data-binary '{"query":"{\n  stocksSummary {\n    symbol\n    profitLoss\n    shares\n    totalValue\n    lowestPrice\n    highestPrice\n    averagePrice\n    priceByHours\n  }\n}"}' --compressed
+```
+- Or open your browser in this URL [http://localhost:8001/stocks](http://localhost:8001/stocks) and page this query to see the information about your stocks:
+```bash
+{
+  stocksSummary {
+    symbol
+    profitLoss
+    shares
+    totalValue
+    lowestPrice
+    highestPrice
+    averagePrice
+    priceByHours
+  }
+}
+```
 
 ![Screen Recording 2023-09-23 at 23 31 26](https://github.com/ppzzmm/rust-pzm-project/assets/29339482/5fa898b7-4e43-44be-a68f-44c9c0c7a754)
 
