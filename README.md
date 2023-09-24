@@ -1,5 +1,4 @@
 # Buy/Sale Stocks
-
 ## Stack of technologies
 That are some of main technologies used in the project:
 - [Rust](https://www.rust-lang.org/)
@@ -64,6 +63,11 @@ $ cargo run -p consumer-stocks-service
 ```bash
 $ cargo run -p stocks-endpoints 
 ```
+### Testing
+- In your brouser open https://localhost:8080/stocks
+
+![Screen Recording 2023-09-23 at 23 31 26](https://github.com/ppzzmm/rust-pzm-project/assets/29339482/5fa898b7-4e43-44be-a68f-44c9c0c7a754)
+
 ## Documentation
 
 ## Instalation
