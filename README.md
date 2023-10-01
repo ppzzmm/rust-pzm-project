@@ -30,10 +30,6 @@ $ docker-compose up --build
 ```bash
 $ docker-compose -f docker-compose.yml up
 ```
-```diff
-- Unfortunately, with Docker I could launch everything but the consumer does not receive the message,
-- for that a implemented a Mutation QgraphQL(buyStocks) to buy stocks to prove how the project work
-```
 ### Without Docker
 #### Setting Kafka and Zookeeper
 - First, download the latest Kafka release [here](https://www.apache.org/dyn/closer.cgi?path=/kafka/3.2.1/kafka_2.13-3.2.1.tgz)
